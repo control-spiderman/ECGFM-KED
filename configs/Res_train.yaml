@@ -1,0 +1,48 @@
+purpose: "####################XXX#####################"
+batch_size: 64
+class_num: 71 # Corresponding to: 44, 71, 23, 5, 12, 19 classes
+use_what_label: superdiagnosis   # diagnosis_label or all or subdiagnosis_label or superdiagnosis or rhythm or form
+
+# model：ecg_encoder
+ecg_model_layers: 3   # When using a resnet effectively
+tqn_model_layers: 7
+ecg_model_name: swinT # resnet1d_wang or ecgNet or xresnet1d_101 or swinT
+use_ecgNet_Diagnosis: swinT  # engNet&TQN or ecgNet or all
+# model：text_encoder
+use_what_prompt: base  # base, concise, plain_diagnosis, intern
+use_label_augment: False
+use_report_augment: True  #True or False
+freeze_layers: [] # -1 is not frozen, other numbers are frozen
+bert_model_name: emilyalsentzer/Bio_ClinicalBERT  # emilyalsentzer/Bio_ClinicalBERT or microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext
+#microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224
+
+# loss
+loss_cross_image_text: False   # true optimizes ce_ecg and ce_text alternately, and false optimizes both
+temperature: 0.1
+loss_type: uniCl  # uniCl 或 cliploss
+loss_ratio: 1
+uniCl_type: increase_dimension   # base or increase_dimension
+
+# optim
+optimizer: {opt: adamW, lr: 5e-5, weight_decay: 0.02}
+schedular: {sched: cosine, lr: 5e-5, epochs: 50, min_lr: 1e-6, decay_rate: 1, warmup_lr: 1e-6, warmup_epochs: 5, cooldown_epochs: 0}
+
+# test
+test_batch_size: 64
+test_shaoxing_class_nums: 8  # 20, 6, 8
+test_georgia_class_nums: 20
+test_ICBEB_class_nums: 9
+test_clinical_class_nums: 12
+result_shaoxing_save_name: result_8_label_augment_101.csv
+result_georgia_save_name: result_20_label_augment_101.csv
+result_ICBEB_save_name: result_9_label_augment_101.csv
+
+# finetune
+getConfidence: True
+finetune: False
+finetune_batch_size: 512
+finetune_sample_rate: 0.01
+finetune_purpose: "########################zero-shot###############################"
+
+# visualization
+visualization: none #resnet or lqn
