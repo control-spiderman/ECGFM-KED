@@ -1,19 +1,23 @@
 # ECGFM-KED
 
-This repository is accompanying our article **Foundation Model of ECG:  Diagnostics and explanations of any disease, form, or rhythm on any ECG**
+This repository is accompanying our article **Foundation Model of ECG Diagnosis: Signal-Language Pre-training Enhanced by Domain-Specific Knowledge**
 
 To install Python dependencies:
 
 ```
+# python version is 3.8.18
 pip install -r requirements.txt
 ```
 
 ## Data
+### MIMIC-IV
+1. Download raw data from https://physionet.org/content/mimic-iv-ecg/1.0/ and store it in./dataset/mimiciv/
+2. Modify and run the python file: ./dataset/mimiciv/data_process.py 
 
 ### PTB-XL
 1. Download raw data from https://physionet.org/content/ptb-xl/1.0.1/ and store it in./dataset/ptb-xl/
-2. Modify and run the python file: ./dataset/ptb-xl/data_preprocess.py and ./dataset/ptb-xl/report_translation.py
-> note: run ./dataset/label_augmentation.py for label augmentation
+2. Modify and run the python file: ./dataset/ptb-xl/data_preprocess.py 
+
 ### georgia
 1. Download raw data from https://moody-challenge.physionet.org/2020/ and store it in./dataset/georgia/
 2. Modify and run the python file: ./dataset/georgia/data_preprocess.py
@@ -32,12 +36,14 @@ Download the data from https://drive.google.com/file/d/1d2GnUm2S9s9ExrkOnG4xSBD-
 
 ## Pre-training
 
-Change the configs/Res_train.yaml file to fit your needs, and change the path to the data file in main.py to be where you store your data, and then run main.py
+Change the configs/Res_train.yaml file to fit your needs, and change the path to the data file in main_mimiciv.py to be where you store your data, and then run main.py
 ## Zero-shot Inference
 
 Change the finetune field in. /configs/Res_train.yaml to False, and run script:
 
 ```
+python test_ptbxl.py
+# or
 python test_georgia.py
 # or
 python test_ICBEB.py
@@ -51,6 +57,8 @@ python clinical.py
 Change the finetune field in ./configs/Res_train.yaml to True, and run script:
 
 ```
+python test_ptbxl.py
+# or
 python test_georgia.py
 # or
 python test_ICBEB.py
