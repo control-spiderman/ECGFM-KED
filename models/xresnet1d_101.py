@@ -174,7 +174,7 @@ class XResNet1d(nn.Sequential):  # block:4, expansion:[3, 4, 23, 3]
     def __init__(self, block, expansion, layers, p=0.0, input_channels=3, num_classes=1000, stem_szs=(32, 32, 64),
                  kernel_size=5, kernel_size_stem=5,
                  widen=1.0, sa=False, act_cls=nn.ReLU, lin_ftrs_head=None, ps_head=0.5, bn_final_head=False,
-                 bn_head=True, act_head="relu", concat_pooling=True, **kwargs):
+                 bn_head=True, act_head="relu", concat_pooling=True, use_ecgNet_Diagnosis="", **kwargs):
         store_attr(self, 'block,expansion,act_cls')
         stem_szs = [input_channels, *stem_szs]
         stem = [ConvLayer(stem_szs[i], stem_szs[i + 1], ks=kernel_size_stem, stride=2 if i == 0 else 1, act_cls=act_cls,
@@ -190,14 +190,20 @@ class XResNet1d(nn.Sequential):  # block:4, expansion:[3, 4, 23, 3]
                                    ndim=1, **kwargs)
                   for i, l in enumerate(layers)]
 
-        # head = create_head1d(block_szs[-1] * expansion, nc=num_classes, lin_ftrs=lin_ftrs_head, ps=ps_head,
-        #                      bn_final=bn_final_head, bn=bn_head, act=act_head, concat_pooling=concat_pooling)
-
-        super().__init__(
-            *stem, nn.MaxPool1d(kernel_size=3, stride=2, padding=1),
-            *blocks,
-            # head,
-        )
+        if use_ecgNet_Diagnosis == "ecgNet":
+            head = create_head1d(block_szs[-1] * expansion, nc=num_classes, lin_ftrs=lin_ftrs_head, ps=ps_head,
+                                 bn_final=bn_final_head, bn=bn_head, act=act_head, concat_pooling=concat_pooling)
+            super().__init__(
+                *stem, nn.MaxPool1d(kernel_size=3, stride=2, padding=1),
+                *blocks,
+                head,
+            )
+        else:
+            super().__init__(
+                *stem, nn.MaxPool1d(kernel_size=3, stride=2, padding=1),
+                *blocks,
+                # head,
+            )
         init_cnn(self)
 
     def _make_layer(self, ni, nf, blocks, stride, kernel_size, sa, **kwargs):
@@ -222,7 +228,11 @@ def _xresnet1d(expansion, layers, **kwargs):    # 4, [3, 4, 23, 3]
 def xresnet1d101(**kwargs): return _xresnet1d(4, [3, 4, 23, 3], **kwargs)
 
 if __name__ == '__main__':
+    checkpoint = torch.load('/home/user/tyy/project/ked/trained_model/checkpoints_ptbbenchmark_mimiciv/best_valid_epoch_18.pt', map_location='cpu')
+    ecg_model_state_dict = checkpoint['ecg_model']
     model = xresnet1d101(num_classes=5, input_channels=12, kernel_size=5,
-                          ps_head=0.5, lin_ftrs_head=[768])
-    result = model(torch.rand((64,12,1000)))   # (128,128,250)
+                          ps_head=0.5, lin_ftrs_head=[768],
+                         use_ecgNet_Diagnosis='other'
+                         )
+    result = model(torch.rand((64,12,1000)))   # (64,768,32)
     print(result.shape) # (64,256,32)

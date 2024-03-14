@@ -8,7 +8,6 @@ import json
 import logging
 import math
 import os
-import cv2
 import time
 import numpy as np
 import random
@@ -226,7 +225,7 @@ def valid_finetune(model, ecg_encoder, text_encoder, tokenizer, data_loader, epo
         gt = torch.cat((gt, label), 0)
         with torch.no_grad():
             if config["ecg_model_name"] in ['resnet1d_wang', 'xresnet1d_101']:
-                ecg_features = ecg_encoder(signal)
+                ecg_features = ecg_encoder(signal)  #(32,768,157)
                 ecg_features_pool = ecg_features.mean(-1)
             else:
                 ecg_features, ecg_features_pool = ecg_encoder(signal)  # (32, 768, 300), (32, 768)
@@ -248,7 +247,7 @@ def valid_finetune(model, ecg_encoder, text_encoder, tokenizer, data_loader, epo
             val_losses.append(val_loss.item())
             writer.add_scalar('val_loss/loss', val_loss, val_scalar_step)
             val_scalar_step += 1
-    metrics = compute_AUCs(gt.cpu().numpy(), pred.cpu().numpy(), n_class=len(text_list))
+    metrics = compute_AUCs(gt.cpu().numpy(), pred.cpu().numpy(), n_class=text_list)
     AUROC_avg = metrics['mean_auc']
     avg_val_loss = np.array(val_losses).mean()
 
@@ -258,13 +257,13 @@ def valid_finetune(model, ecg_encoder, text_encoder, tokenizer, data_loader, epo
 
 
     for idx in range(len(text_list)):
-        metrics[f"mccs/class_{idx}"] = mccs[idx + 1]
+        metrics[f"mccs/class_{text_list[idx]}"] = mccs[idx + 1]
     metrics["mccs"] = mccs[-1]
     for idx in range(len(text_list)):
-        metrics[f"F1/class_{idx}"] = F1s[idx + 1]
+        metrics[f"F1/class_{text_list[idx]}"] = F1s[idx + 1]
     metrics["F1"] = F1s[-1]
     for idx in range(len(text_list)):
-        metrics[f"Accs/class_{idx}"] = Accs[idx + 1]
+        metrics[f"Accs/class_{text_list[idx]}"] = Accs[idx + 1]
     metrics["Accs"] = Accs[-1]
 
     confidence_result = []
@@ -489,13 +488,17 @@ def compute_AUCs(gt, pred, n_class):
     AUROCs = []
     gt_np = gt
     pred_np = pred
-    for i in range(n_class):
-        AUROCs.append(roc_auc_score(gt_np[:, i], pred_np[:, i]))
+    for i in range(len(n_class)):
+        try:
+            AUROCs.append(roc_auc_score(gt_np[:, i], pred_np[:, i]))
+        except Exception as e:
+            print(e)
     metrics[f"mean_auc"] = np.mean(np.array(AUROCs))
-    for idx in range(n_class):
-        metrics[f"auc/class_{idx}"] = AUROCs[idx]
+    for idx in range(len(n_class)):
+        metrics[f"auc/class_{n_class[idx]}"] = AUROCs[idx]
     return metrics
 
 
 if __name__ == '__main__':
     draw_confusion_matrix([0, 0, 1, 2, 1, 2, 0, 2, 2, 0, 1, 1], [1, 0, 1, 2, 1, 0, 0, 2, 2, 0, 1, 1], [0, 1, 2], 10)
+    print()

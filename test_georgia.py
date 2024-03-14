@@ -5,22 +5,19 @@
 # createtime: 2023-06-20 11:01
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
-import torch.distributed as dist
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
-from transformers import AutoModel,BertConfig,AutoTokenizer
+from transformers import AutoTokenizer
 import matplotlib.pyplot as plt
 from sklearn.metrics import multilabel_confusion_matrix
 from tensorboardX import SummaryWriter
 
 from factory import utils
-from dataset.ecgDataset import ICBEBDataset, FinetuneDataset
-from models.model_new import ResNet1D
+from dataset.ecgDataset import FinetuneDataset
+from models.old_model.model_new import ResNet1D
 from models.ECGNet import ECGNet
-from models.clip_model import CLP_clinical,ModelRes,ModelDense,TQNModel
+from models.clip_model import CLP_clinical, TQNModel
 from models.resnet1d_wang import resnet1d_wang
 from models.xresnet1d_101 import xresnet1d101
 from engine.finetune_fg import finetune, valid_finetune
@@ -30,7 +27,6 @@ from scheduler import create_scheduler
 
 import argparse
 import os
-import logging
 import ruamel.yaml as yaml
 import numpy as np
 import random
@@ -38,9 +34,7 @@ import time
 import datetime
 import json
 import csv
-import math
 from pathlib import Path
-from functools import partial
 from sklearn.metrics import roc_auc_score,matthews_corrcoef,f1_score,accuracy_score
 import pickle
 
@@ -66,8 +60,8 @@ def main(args, config):
 
     #### Dataset ####
     print("Creating dataset")
-    X = np.load("../dataset/georgia/signal_data_filter_100.npy", allow_pickle=True)
-    y = np.load("../dataset/georgia/label_data_filter_100.npy", allow_pickle=True)
+    X = np.load("./dataset/georgia/signal_data_filter_100.npy", allow_pickle=True)
+    y = np.load("./dataset/georgia/label_data_filter_100.npy", allow_pickle=True)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=2, shuffle=True)
     X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=0.5, random_state=2, shuffle=True)
     print("测试集数量：", len(X_test))
@@ -166,7 +160,7 @@ def main(args, config):
             writer.add_scalar('loss/finetune_loss_clip_epoch', float(finetune_loss_clip_epoch), epoch)
             writer.add_scalar('lr/leaning_rate', lr_scheduler._get_lr(epoch)[0], epoch)
 
-            val_loss, val_auc, val_metrics = valid_finetune(model, ecg_model, text_encoder, tokenizer,
+            val_loss, val_auc, val_metrics, _ = valid_finetune(model, ecg_model, text_encoder, tokenizer,
                                                           val_dataloader, epoch, device, args, config, writer, train_dataset.label_name)
             writer.add_scalar('loss/val_loss_epoch', val_loss, epoch)
             writer.add_scalar('loss/val_auc_epoch', val_auc, epoch)
@@ -184,13 +178,13 @@ def main(args, config):
                     'config': config,
                     'epoch': epoch,
                 }
-                file_path = "/home/tyy/unECG/trained_model/checkpoints/finetune_cpsc_" + str(
+                file_path = "/home/user/tyy/project/ked/trained_model/checkpoints_finetune/finetune_geogia_" + str(
                     config['finetune_sample_rate']) + ".pt"
                 with open(file_path, "wb") as f:
                     torch.save(save_obj, f)
 
                 print("Start testing")
-                test_loss, test_auc, test_metrics = valid_finetune(model, ecg_model, text_encoder, tokenizer,
+                test_loss, test_auc, test_metrics, _ = valid_finetune(model, ecg_model, text_encoder, tokenizer,
                                                                 test_dataloader, epoch, device, args, config, writer,
                                                                 train_dataset.label_name)
                 writer.add_scalar('loss/test_loss_epoch', test_loss, epoch)
@@ -221,7 +215,7 @@ def main(args, config):
         with open(os.path.join(args.finetune_output_dir, "log.txt"), "a") as f:
             f.write(config["finetune_purpose"] + "\n")
         # test(model, ecg_model, text_encoder, tokenizer, test_dataloader, device, args, config)
-        test_loss, test_auc, test_metrics = valid_finetune(model, ecg_model, text_encoder, tokenizer,
+        test_loss, test_auc, test_metrics, confidence_result = valid_finetune(model, ecg_model, text_encoder, tokenizer,
                                                            test_dataloader, 0, device, args, config, writer,
                                                            train_dataset.label_name)
         writer.add_scalar('loss/test_loss_epoch', test_loss, 0)
@@ -242,9 +236,9 @@ def test(model, ecg_encoder, text_encoder, tokenizer, data_loader, device, args,
     #                        "Right bundle branch block", "ST-segment depression", "ST-segment elevated"]
     # text_list = ["Normal ECG", "Conduction Disturbance(first degree AV block, left/Right bundle branch block)", "ST-T changes(ST-segment depression/elevated)"]
 
-    with open("/home/tyy/unECG/dataset/georgia/label_map.json", 'r') as f:
+    with open("/home/user/tyy/project/ked/dataset/georgia/label_map.json", 'r') as f:
         all_label_map = json.load(f)
-    f = open('/home/tyy/unECG/dataset/georgia/mlb.pkl', 'rb')
+    f = open('/home/user/tyy/project/ked/dataset/georgia/mlb.pkl', 'rb')
     data = pickle.load(f)
     label_list = [all_label_map[item] for item in data.classes_]
 
@@ -521,32 +515,50 @@ def plot_confusion_matrix(matrix, labels):
     plt.show()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='../configs/Res_train.yaml')
-    parser.add_argument('--checkpoint', default='/home/tyy/unECG/trained_model/checkpoints/best_valid_noAugment_unicl.pt')
-    parser.add_argument('--ignore_index', default=False, type=bool)
-    parser.add_argument('--bert_model_name', default='emilyalsentzer/Bio_ClinicalBERT') #microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext or emilyalsentzer/Bio_ClinicalBERT
-    parser.add_argument('--output_dir', default='./output_test/georgia')
-    parser.add_argument('--finetune_output_dir', default='./output_finetune/georgia')
-    parser.add_argument('--max_length', default=256, type=int)
-    parser.add_argument('--loss_ratio', default=1, type=int)
-    parser.add_argument('--device', default='cuda')
-    parser.add_argument('--seed', default=42, type=int)
-    parser.add_argument('--gpu', type=str,default='0', help='gpu')
-    parser.add_argument('--distributed', default=False, type=bool)
-    parser.add_argument('--action', default='train')
-    parser.add_argument('--result_save_name', default='result_65_label_augment_new.csv')
-    args = parser.parse_args()
+    config = yaml.load(open('./configs/Res_train.yaml', 'r'), Loader=yaml.Loader)
+    if config['finetune']:
+        model_list = ['best_valid_all_increase_with_augment_epoch_3.pt']
+    else:
+        model_list = [
+            # "best_valid_all_increase_zhipuai_augment_epoch_3.pt",
+            # "best_valid_all_increase_gemini_augment_epoch_3.pt"
+            'best_valid_all_increase_with_augment_epoch_3.pt',
+            # 'best_valid_all_base_no_augment_epoch_3.pt',
+            # 'best_valid_all_increase_no_augment_epoch_3.pt',
+            # 'best_valid_all_base_with_augment_epoch_3.pt',
+        ]
+    for model in model_list:
+        if 'no_augment' in model:
+            model_path = '/home/user/tyy/project/ked/trained_model/checkpoints_mimiciv/' + model
+        else:
+            model_path = '/home/user/tyy/project/ked/trained_model/checkpoints_mimiciv_copy/' + model
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--config', default='./configs/Res_train.yaml')
+        parser.add_argument('--checkpoint', default=model_path)
+        parser.add_argument('--ignore_index', default=False, type=bool)
+        parser.add_argument('--bert_model_name', default='emilyalsentzer/Bio_ClinicalBERT') #microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext or emilyalsentzer/Bio_ClinicalBERT
+        parser.add_argument('--output_dir', default='./output_test/georgia')
+        parser.add_argument('--finetune_output_dir', default='./output/output_finetune/georgia')
+        parser.add_argument('--max_length', default=256, type=int)
+        parser.add_argument('--loss_ratio', default=1, type=int)
+        parser.add_argument('--device', default='cuda')
+        parser.add_argument('--seed', default=42, type=int)
+        parser.add_argument('--gpu', type=str,default='0', help='gpu')
+        parser.add_argument('--distributed', default=False, type=bool)
+        parser.add_argument('--action', default='train')
+        parser.add_argument('--result_save_name', default='result_65_label_augment_new.csv')
+        args = parser.parse_args()
 
-    config = yaml.load(open(args.config, 'r'), Loader=yaml.Loader)
+        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
-    Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+        yaml.dump(config, open(os.path.join(args.output_dir, 'config.yaml'), 'w'))
 
-    yaml.dump(config, open(os.path.join(args.output_dir, 'config.yaml'), 'w'))
+        torch.cuda.current_device()
+        torch.cuda._initialized = True
 
-    torch.cuda.current_device()
-    torch.cuda._initialized = True
-
-    purpose = ['(concise_prompt)', '(intern_prompt)', '(plain_diagnosis)']
-    checkpoint_model = ['best_valid_concise_prompt.pt', 'best_valid_intern_prompt.pt', 'best_valid_plain_diagnosis.pt']
-    main(args, config)
+        if config['finetune']:
+            config["finetune_purpose"] = ("######################" + model + "############"+
+                                          str(config['finetune_sample_rate'])+"############")
+        else:
+            config["finetune_purpose"] = "######################" + model + "########################"
+        main(args, config)

@@ -8,7 +8,7 @@ from torch import nn
 import torch.nn.functional as F
 import torchvision.models as models
 from transformers import AutoModel,BertConfig,AutoTokenizer
-from pytorch_pretrained_vit import ViT
+# from pytorch_pretrained_vit import ViT
 
 from models.transformer_decoder import *
 from factory.visualization import visualization_tsne
@@ -171,7 +171,9 @@ class TQNModel(nn.Module):
         self.dropout_feas = nn.Dropout(0.1)
 
         self.mlp_head = nn.Sequential(  # nn.LayerNorm(768),
-            nn.Linear(embed_dim, class_num)
+            nn.Linear(embed_dim, 2048),
+            nn.GELU(),
+            nn.Linear(2048, class_num)
         )
         self.apply(self._init_weights)
 

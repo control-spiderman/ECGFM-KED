@@ -1,1 +1,10 @@
 clinical_dataset.rar
+*.zip
+/mortality_pred
+/output
+/output_test
+/output_mimiciv
+/output_mimiciv_copy
+/output_ptbbenchmark_mimic
+/output_clip_mimiciv
+/backupfiles

@@ -1,18 +1,21 @@
-purpose: "####################XXX#####################"
-batch_size: 64
-class_num: 71 # Corresponding to: 44, 71, 23, 5, 12, 19 classes
-use_what_label: superdiagnosis   # diagnosis_label or all or subdiagnosis_label or superdiagnosis or rhythm or form
+purpose: "###################使用GEMINI的结果跑一个模型######################"
+batch_size: 80  # ked:80, clip:100, unicl:100
+class_num: 105 # Corresponding to: 44, 71, 23, 5, 12(rhythm), 19(form) classes， 105（mimiciv）
+use_what_label: mimiciv_label   #mimiciv_label_4000 mimiciv_label or mimiciv_label_4000 diagnosis_label or
+keep_training: "/home/user/tyy/project/ked/trained_model/checkpoints_mimiciv_copy/best_valid_all_increase_gemini_augment_epoch_1.pt"  # 路径 or “”
 
 # model：ecg_encoder
 ecg_model_layers: 3   # When using a resnet effectively
 tqn_model_layers: 7
-ecg_model_name: swinT # resnet1d_wang or ecgNet or xresnet1d_101 or swinT
-use_ecgNet_Diagnosis: swinT  # engNet&TQN or ecgNet or all
+ecg_model_name: xresnet1d_101 # resnet1d_wang or ecgNet or xresnet1d_101 or swinT
+use_ecgNet_Diagnosis: all  # engNet&TQN or ecgNet or all or swinT
 # model：text_encoder
 use_what_prompt: base  # base, concise, plain_diagnosis, intern
 use_label_augment: False
 use_report_augment: True  #True or False
-freeze_layers: [] # -1 is not frozen, other numbers are frozen
+use_feature_augment: False
+mimic_augment_type: mimiciv_label_map_report_gemini   # mimiciv_label_map_report_zhipuai_new or mimiciv_label_map_report or mimiciv_label_map_report_gemini
+freeze_layers: [0,1,2,3,4,5,6,7,8,9,10] # -1 is not frozen, other numbers are frozen
 bert_model_name: emilyalsentzer/Bio_ClinicalBERT  # emilyalsentzer/Bio_ClinicalBERT or microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext
 #microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224
 
@@ -25,24 +28,31 @@ uniCl_type: increase_dimension   # base or increase_dimension
 
 # optim
 optimizer: {opt: adamW, lr: 5e-5, weight_decay: 0.02}
-schedular: {sched: cosine, lr: 5e-5, epochs: 50, min_lr: 1e-6, decay_rate: 1, warmup_lr: 1e-6, warmup_epochs: 5, cooldown_epochs: 0}
+schedular: {sched: cosine, lr: 5e-5, epochs: 10, min_lr: 1e-6, decay_rate: 1, warmup_lr: 1e-6, warmup_epochs: 5,
+            cooldown_epochs: 0, finetune_epochs: 10}
 
 # test
-test_batch_size: 64
+test_batch_size: 16
 test_shaoxing_class_nums: 8  # 20, 6, 8
 test_georgia_class_nums: 20
+test_ptbxl_class_nums: 71
 test_ICBEB_class_nums: 9
 test_clinical_class_nums: 12
+test_code_class_nums: 6
 result_shaoxing_save_name: result_8_label_augment_101.csv
 result_georgia_save_name: result_20_label_augment_101.csv
 result_ICBEB_save_name: result_9_label_augment_101.csv
+ptbxl_use_what_label: all # all or subdiagnosis_label or subdiagnosis_label or rhythm or form or diagnosis_label
+
+# description 整体都不行，弃用吧
+zeroshot_report_type: gpt4_report # gemini_desc or gemini_report or zhipuai_desc or zhipuai_report or gpt4_desc
 
 # finetune
-getConfidence: True
+getConfidence: False
 finetune: False
-finetune_batch_size: 512
-finetune_sample_rate: 0.01
-finetune_purpose: "########################zero-shot###############################"
+finetune_batch_size: 16  # ptb-xl form:880
+finetune_sample_rate: 1
+finetune_purpose: "########################zero-shot(all)###############################"
 
-# visualization
-visualization: none #resnet or lqn
+# visualization, 画tsne的代码
+visualization: resnet #resnet or lqn

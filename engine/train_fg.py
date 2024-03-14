@@ -83,27 +83,40 @@ def train(model, ecg_encoder, text_encoder, tokenizer, data_loader, optimizer, e
     scalar_step = epoch*len(data_loader)
     num_batches_per_epoch = data_loader.num_batches
     sample_digits = math.ceil(math.log(data_loader.num_samples + 1, 10))
-    if config["use_what_label"] == "diagnosis_label":
+    if config['use_what_label'] == 'mimiciv_label':
+        f = open('/home/user/tyy/project/ked/dataset/mimiciv/mlb.pkl', 'rb')
+        data = pickle.load(f)
+        text_list = data.classes_
         if config["use_label_augment"]:
-            with open("/home/tyy/unECG/dataset/all_label_augment.json", 'r') as f:
+            with open("/home/user/tyy/project/ked/dataset/mimiciv/mimiciv_label_map_report.json", "r") as f:
                 background_info = json.load(f)
-            with open("/home/tyy/unECG/dataset/all_diagnosis_label_map.json", 'r') as f:
+            text_list = [background_info[item] for item in text_list]
+
+    elif config['use_what_label'] == 'mimiciv_label_4000':
+        f = open('/home/user/tyy/project/ked/dataset/mimiciv/mlb_4000.pkl', 'rb')
+        data = pickle.load(f)
+        text_list = data.classes_
+    elif config["use_what_label"] == "diagnosis_label":
+        if config["use_label_augment"]:
+            with open("/home/user/tyy/project/ked/dataset/all_label_augment.json", 'r') as f:
+                background_info = json.load(f)
+            with open("/home/user/tyy/project/ked/dataset/all_diagnosis_label_map.json", 'r') as f:
                 all_diagnosis_label_map = json.load(f)
             text_list = []
             for key, value in all_diagnosis_label_map.items():
                 item = background_info[value] + "This electrocardiogram diagnosed:" + value
                 text_list.append(item)
         else:
-            with open("/home/tyy/unECG/dataset/all_diagnosis_label_map.json", 'r') as f:
+            with open("/home/user/tyy/project/ked/dataset/all_diagnosis_label_map.json", 'r') as f:
                 all_diagnosis_label_map = json.load(f)
-            f = open('/home/tyy/ecg_ptbxl/output/exp1/data/mlb.pkl', 'rb')
+            f = open('/home/user/tyy/project/ked/dataset/ptb-xl/output/exp1/data/mlb.pkl', 'rb')
             data = pickle.load(f)
             text_list = [all_diagnosis_label_map[item] for item in data.classes_]
     elif config["use_what_label"] == "subdiagnosis_label":
         if config["use_label_augment"]:
-            with open("/home/tyy/unECG/dataset/label_augment_23.json", 'r') as f:
+            with open("/home/user/tyy/project/ked/dataset/label_augment_23.json", 'r') as f:
                 background_info = json.load(f)
-            with open("/home/tyy/unECG/dataset/all_subdiagnosis_label_map.json", 'r') as f:
+            with open("/home/user/tyy/project/ked/dataset/all_subdiagnosis_label_map.json", 'r') as f:
                 all_diagnosis_label_map = json.load(f)
             text_list = []
             for key, value in all_diagnosis_label_map.items():
@@ -133,25 +146,25 @@ def train(model, ecg_encoder, text_encoder, tokenizer, data_loader, optimizer, e
                                        'ILBBB': "incomplete left bundle branch block",
                                        'SEHYP': "septal hypertrophy",
                                        'PMI': "posterior myocardial infarction"}
-            f = open('/home/tyy/ecg_ptbxl/output/exp1.1/data/mlb.pkl', 'rb')
+            f = open('/home/user/tyy/project/ked/dataset/ptb-xl/output/exp1.1/data/mlb.pkl', 'rb')
             data = pickle.load(f)
             text_list = [all_diagnosis_label_map[item] for item in data.classes_]
     elif config["use_what_label"] == "form":
-        with open("/home/tyy/unECG/dataset/all_label_map.json", 'r') as f:
+        with open("/home/user/tyy/project/ked/dataset/all_label_map.json", 'r') as f:
             all_diagnosis_label_map = json.load(f)
-        f = open('/home/tyy/ecg_ptbxl/output/exp2/data/mlb.pkl', 'rb')
+        f = open('/home/user/tyy/project/ked/dataset/ptb-xl/output/exp2/data/mlb.pkl', 'rb')
         data = pickle.load(f)
         text_list = [all_diagnosis_label_map[item] for item in data.classes_]
     elif config["use_what_label"] == "rhythm":
-        with open("/home/tyy/unECG/dataset/all_label_map.json", 'r') as f:
+        with open("/home/user/tyy/project/ked/dataset/all_label_map.json", 'r') as f:
             all_diagnosis_label_map = json.load(f)
-        f = open('/home/tyy/ecg_ptbxl/output/exp3/data/mlb.pkl', 'rb')
+        f = open('/home/user/tyy/project/ked/dataset/ptb-xl/output/exp3/data/mlb.pkl', 'rb')
         data = pickle.load(f)
         text_list = [all_diagnosis_label_map[item] for item in data.classes_]
     elif config["use_what_label"] == "all":
-        with open("/home/tyy/unECG/dataset/all_label_map.json", 'r') as f:
+        with open("/home/tyy/project/ecgfm_ked/dataset/all_label_map.json", 'r') as f:
             all_diagnosis_label_map = json.load(f)
-        f = open('/home/tyy/ecg_ptbxl/output/exp0/data/mlb.pkl', 'rb')
+        f = open('/home/tyy/project/ecgfm_ked/dataset/ptb-xl/output/exp0/data/mlb.pkl', 'rb')
         data = pickle.load(f)
         text_list = [all_diagnosis_label_map[item] for item in data.classes_]
     elif config["use_label_augment"]:
@@ -190,12 +203,7 @@ def train(model, ecg_encoder, text_encoder, tokenizer, data_loader, optimizer, e
     try:
         for i, sample in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
             signal = sample['signal'].to(device)
-            if (config["ecg_model_name"] == 'LSTM') or (config["ecg_model_name"] == 'resnet'):
-                signal = signal.unsqueeze(1) #for lstm and resnet
-            elif config["ecg_model_name"] in ['ecgNet', 'resnet1d_wang', 'xresnet1d_101']:
-                signal = signal.transpose(1, 2) #for lstm and resnet
-            elif config['ecg_model_name'] == 'swinT':
-                signal = signal.transpose(1,2)
+            signal = signal.float()
 
             label = sample['label'].to(device)
             label = torch.tensor(label, device=device)
@@ -229,11 +237,12 @@ def train(model, ecg_encoder, text_encoder, tokenizer, data_loader, optimizer, e
                 loss_ce_text = loss
                 loss_clip = loss
             else:
-                label_features = get_text_features(text_encoder, text_list, tokenizer, device,
-                                                   max_length=args.max_length)  # (5,768)
+
                 report = sample['report']  # (32)
                 report_features = get_text_features(text_encoder, report, tokenizer, device,
                                                     max_length=args.max_length)  # (32,768)
+                label_features = get_text_features(text_encoder, text_list, tokenizer, device,
+                                                   max_length=args.max_length)  # (5,768)
 
                 label = label.long()
                 pred_class_ecg = model(ecg_features.transpose(1, 2),label_features)  # (32,40,2)
@@ -315,27 +324,39 @@ def valid_on_ptb(model, ecg_encoder, text_encoder, tokenizer, data_loader, epoch
     model.eval()
     ecg_encoder.eval()
     text_encoder.eval()
-    if config["use_what_label"] == "diagnosis_label":
+    if config['use_what_label'] == 'mimiciv_label':
+        f = open('/home/user/tyy/project/ked/dataset/mimiciv/mlb.pkl', 'rb')
+        data = pickle.load(f)
+        text_list = data.classes_
         if config["use_label_augment"]:
-            with open("/home/tyy/unECG/dataset/all_label_augment.json", 'r') as f:
+            with open("/home/user/tyy/project/ked/dataset/mimiciv/mimiciv_label_map_report.json", "r") as f:
                 background_info = json.load(f)
-            with open("/home/tyy/unECG/dataset/all_diagnosis_label_map.json", 'r') as f:
+            text_list = [background_info[item] for item in text_list]
+    elif config['use_what_label'] == 'mimiciv_label_4000':
+        f = open('/home/user/tyy/project/ked/dataset/mimiciv/mlb_4000.pkl', 'rb')
+        data = pickle.load(f)
+        text_list = data.classes_
+    elif config["use_what_label"] == "diagnosis_label":
+        if config["use_label_augment"]:
+            with open("/home/user/tyy/project/ked/dataset/all_label_augment.json", 'r') as f:
+                background_info = json.load(f)
+            with open("/home/user/tyy/project/ked/dataset/all_diagnosis_label_map.json", 'r') as f:
                 all_diagnosis_label_map = json.load(f)
             text_list = []
             for key, value in all_diagnosis_label_map.items():
                 item = background_info[value] + "This electrocardiogram diagnosed:" + value
                 text_list.append(item)
         else:
-            with open("/home/tyy/unECG/dataset/all_diagnosis_label_map.json", 'r') as f:
+            with open("/home/user/tyy/project/ked/dataset/all_diagnosis_label_map.json", 'r') as f:
                 all_diagnosis_label_map = json.load(f)
-            f = open('/home/tyy/ecg_ptbxl/output/exp1/data/mlb.pkl', 'rb')
+            f = open('/home/user/tyy/project/ked/dataset/ptb-xl/output/exp1/data/mlb.pkl', 'rb')
             data = pickle.load(f)
             text_list = [all_diagnosis_label_map[item] for item in data.classes_]
     elif config["use_what_label"] == "subdiagnosis_label":
         if config["use_label_augment"]:
-            with open("/home/tyy/unECG/dataset/all_subdiagnosis_label_augment.json", 'r') as f:
+            with open("/home/user/tyy/project/ked/dataset/all_subdiagnosis_label_augment.json", 'r') as f:
                 background_info = json.load(f)
-            with open("/home/tyy/unECG/dataset/all_subdiagnosis_label_map.json", 'r') as f:
+            with open("/home/user/tyy/project/ked/dataset/all_subdiagnosis_label_map.json", 'r') as f:
                 all_diagnosis_label_map = json.load(f)
             text_list = []
             for key, value in all_diagnosis_label_map.items():
@@ -365,25 +386,25 @@ def valid_on_ptb(model, ecg_encoder, text_encoder, tokenizer, data_loader, epoch
                                 'ILBBB':"incomplete left bundle branch block",
                                 'SEHYP':"septal hypertrophy",
                                 'PMI':"posterior myocardial infarction"}
-            f = open('/home/tyy/ecg_ptbxl/output/exp1.1/data/mlb.pkl', 'rb')
+            f = open('/home/user/tyy/project/ked/dataset/ptb-xl/output/exp1.1/data/mlb.pkl', 'rb')
             data = pickle.load(f)
             text_list = [all_diagnosis_label_map[item] for item in data.classes_]
     elif config["use_what_label"] == "all":
-        with open("/home/tyy/unECG/dataset/all_label_map.json", 'r') as f:
+        with open("/home/tyy/project/ecgfm_ked/dataset/all_label_map.json", 'r') as f:
             all_diagnosis_label_map = json.load(f)
-        f = open('/home/tyy/ecg_ptbxl/output/exp0/data/mlb.pkl', 'rb')
+        f = open('/home/tyy/project/ecgfm_ked/dataset/ptb-xl/output/exp0/data/mlb.pkl', 'rb')
         data = pickle.load(f)
         text_list = [all_diagnosis_label_map[item] for item in data.classes_]
     elif config["use_what_label"] == "form":
-        with open("/home/tyy/unECG/dataset/all_label_map.json", 'r') as f:
+        with open("/home/user/tyy/project/ked/dataset/all_label_map.json", 'r') as f:
             all_diagnosis_label_map = json.load(f)
-        f = open('/home/tyy/ecg_ptbxl/output/exp2/data/mlb.pkl', 'rb')
+        f = open('/home/user/tyy/project/ked/dataset/ptb-xl/output/exp2/data/mlb.pkl', 'rb')
         data = pickle.load(f)
         text_list = [all_diagnosis_label_map[item] for item in data.classes_]
     elif config["use_what_label"] == "rhythm":
-        with open("/home/tyy/unECG/dataset/all_label_map.json", 'r') as f:
+        with open("/home/user/tyy/project/ked/dataset/all_label_map.json", 'r') as f:
             all_diagnosis_label_map = json.load(f)
-        f = open('/home/tyy/ecg_ptbxl/output/exp3/data/mlb.pkl', 'rb')
+        f = open('/home/user/tyy/project/ked/dataset/ptb-xl/output/exp3/data/mlb.pkl', 'rb')
         data = pickle.load(f)
         text_list = [all_diagnosis_label_map[item] for item in data.classes_]
     elif config["use_label_augment"]:
@@ -434,12 +455,7 @@ def valid_on_ptb(model, ecg_encoder, text_encoder, tokenizer, data_loader, epoch
 
     for i, sample in enumerate(data_loader):
         signal = sample['signal'].to(device)
-        if (config["ecg_model_name"] == 'LSTM') or (config["ecg_model_name"] == 'resnet'):
-            signal = signal.unsqueeze(1) #for lstm and resnet
-        elif config["ecg_model_name"] in ['ecgNet', 'resnet1d_wang', 'xresnet1d_101']:
-            signal = signal.transpose(1, 2) #for lstm and resnet
-        elif config['ecg_model_name'] == 'swinT':
-            signal = signal.transpose(1, 2)  # for lstm and resnet
+        signal = signal.float()
 
         label = sample['label'].to(device)
         label = torch.tensor(label, device=device)
@@ -447,7 +463,7 @@ def valid_on_ptb(model, ecg_encoder, text_encoder, tokenizer, data_loader, epoch
         gt = torch.cat((gt, label), 0)
         with torch.no_grad():
             if config["ecg_model_name"] in ['resnet1d_wang', 'xresnet1d_101']:
-                ecg_features = ecg_encoder(signal)
+                ecg_features = ecg_encoder(signal)  # (32,12,5000)
                 ecg_features_pool = ecg_features.mean(-1)
             elif config["ecg_model_name"] in ['swinT']:
                 ecg_features = ecg_encoder(signal)
@@ -470,15 +486,18 @@ def valid_on_ptb(model, ecg_encoder, text_encoder, tokenizer, data_loader, epoch
             val_losses.append(val_loss.item())
             writer.add_scalar('val_loss/loss', val_loss, val_scalar_step)
             val_scalar_step += 1
-    metrics = compute_AUCs(gt, pred, n_class = config["class_num"])
+    metrics = compute_AUCs(gt, pred, n_class = len(text_list))
     AUROC_avg = metrics['mean_auc']
     avg_val_loss = np.array(val_losses).mean()
-
-    mccs, threshold = compute_mccs(gt.cpu().numpy(), pred.cpu().numpy(), n_class=config["class_num"])
-    F1s = compute_F1s_threshold(gt.cpu().numpy(), pred.cpu().numpy(), threshold, n_class=config["class_num"])
-    Accs = compute_Accs_threshold(gt.cpu().numpy(), pred.cpu().numpy(), threshold, n_class=config["class_num"])
-    metrics["F1"] = F1s[-1]
-    metrics["Accs"] = Accs[-1]
+    # start_time = time.time()
+    # mccs, threshold = compute_mccs(gt.cpu().numpy(), pred.cpu().numpy(), n_class=len(text_list))
+    # end_time = time.time()
+    # execution_time = end_time - start_time
+    # print(f"threshold计算的时间是： {execution_time} 秒")
+    # F1s = compute_F1s_threshold(gt.cpu().numpy(), pred.cpu().numpy(), threshold, n_class=len(text_list))
+    # Accs = compute_Accs_threshold(gt.cpu().numpy(), pred.cpu().numpy(), threshold, n_class=len(text_list))
+    # metrics["F1"] = F1s[-1]
+    # metrics["Accs"] = Accs[-1]
     return avg_val_loss,AUROC_avg,metrics
 
 def compute_F1s_threshold(gt, pred, threshold, n_class=6):
@@ -520,21 +539,39 @@ def compute_mccs(gt, pred, n_class=6):
     best_mcc = 0.0
 
     for i in range(n_class):
-        select_best_threshold_i = 0.0
+        sorted_pred = sorted(list(set(pred_np[:, i])))  # 对预测得分进行排序并去重
+        select_best_threshold_i = sorted_pred[0]  # 初始化最优阈值
+        pred_np_i = pred_np[:, i].copy()  # 为了避免覆盖原始数据，我们使用副本
         best_mcc_i = 0.0
-        for threshold_idx in range(len(pred)):
-            pred_np_ = pred_np.copy()
-            thresholds = pred[threshold_idx]
-            pred_np_[:, i][pred_np_[:, i] >= thresholds[i]] = 1
-            pred_np_[:, i][pred_np_[:, i] < thresholds[i]] = 0
-            mcc = matthews_corrcoef(gt_np[:, i], pred_np_[:, i])
+        for threshold in sorted_pred:
+            pred_np_i[pred_np_i >= threshold] = 1
+            pred_np_i[pred_np_i < threshold] = 0
+            mcc = matthews_corrcoef(gt_np[:, i], pred_np_i)
             if mcc > best_mcc_i:
                 best_mcc_i = mcc
-                select_best_threshold_i = thresholds[i]
+                select_best_threshold_i = threshold
+            pred_np_i = pred_np[:, i].copy()  # 还原pred_np_i，进行下一次阈值的计算
         select_best_thresholds.append(select_best_threshold_i)
     for i in range(n_class):
         pred_np[:, i][pred_np[:, i] >= select_best_thresholds[i]] = 1
         pred_np[:, i][pred_np[:, i] < select_best_thresholds[i]] = 0
+
+    # for i in range(n_class):
+    #     select_best_threshold_i = 0.0
+    #     best_mcc_i = 0.0
+    #     for threshold_idx in range(len(pred)):
+    #         pred_np_ = pred_np.copy()
+    #         thresholds = pred[threshold_idx]
+    #         pred_np_[:, i][pred_np_[:, i] >= thresholds[i]] = 1
+    #         pred_np_[:, i][pred_np_[:, i] < thresholds[i]] = 0
+    #         mcc = matthews_corrcoef(gt_np[:, i], pred_np_[:, i])
+    #         if mcc > best_mcc_i:
+    #             best_mcc_i = mcc
+    #             select_best_threshold_i = thresholds[i]
+    #     select_best_thresholds.append(select_best_threshold_i)
+    # for i in range(n_class):
+    #     pred_np[:, i][pred_np[:, i] >= select_best_thresholds[i]] = 1
+    #     pred_np[:, i][pred_np[:, i] < select_best_thresholds[i]] = 0
     mccs = []
     mccs.append('mccs')
     for i in range(n_class):
@@ -565,153 +602,8 @@ def compute_AUCs(gt, pred, n_class):
     for i in range(n_class):
         AUROCs.append(roc_auc_score(gt_np[:, i], pred_np[:, i]))
     metrics[f"mean_auc"] = np.mean(np.array(AUROCs))
-    if n_class == 5:
-        metrics[f"auc/class_0"]=AUROCs[0]
-        metrics[f"auc/class_1"]=AUROCs[1]
-        metrics[f"auc/class_2"]=AUROCs[2]
-        metrics[f"auc/class_3"]=AUROCs[3]
-        metrics[f"auc/class_4"]=AUROCs[4]
-    if n_class == 23:
-        metrics[f"auc/class_0"] = AUROCs[0]
-        # metrics[f"auc/class_1"]=AUROCs[1]
-        # metrics[f"auc/class_2"]=AUROCs[2]
-        # metrics[f"auc/class_3"]=AUROCs[3]
-        # metrics[f"auc/class_4"]=AUROCs[4]
-        # metrics[f"auc/class_5"] = AUROCs[5]
-        metrics[f"auc/class_6"]=AUROCs[6]
-        # metrics[f"auc/class_7"]=AUROCs[7]
-        # metrics[f"auc/class_8"]=AUROCs[8]
-        # metrics[f"auc/class_9"]=AUROCs[9]
-        # metrics[f"auc/class_10"]=AUROCs[10]
-        # metrics[f"auc/class_11"]=AUROCs[11]
-        metrics[f"auc/class_12"]=AUROCs[12]
-        # metrics[f"auc/class_13"]=AUROCs[13]
-        # metrics[f"auc/class_14"] = AUROCs[14]
-        # metrics[f"auc/class_15"] = AUROCs[15]
-        # metrics[f"auc/class_16"] = AUROCs[16]
-        # metrics[f"auc/class_17"] = AUROCs[17]
-        metrics[f"auc/class_18"] = AUROCs[18]
-        # metrics[f"auc/class_19"] = AUROCs[19]
-        # metrics[f"auc/class_20"] = AUROCs[20]
-        # metrics[f"auc/class_21"] = AUROCs[21]
-        metrics[f"auc/class_22"] = AUROCs[22]
-    elif n_class == 44:
-        metrics[f"auc/class_0"]=AUROCs[0]
-        # metrics[f"auc/class_1"]=AUROCs[1]
-        # metrics[f"auc/class_2"]=AUROCs[2]
-        # metrics[f"auc/class_3"]=AUROCs[3]
-        # metrics[f"auc/class_4"]=AUROCs[4]
-        metrics[f"auc/class_5"]=AUROCs[5]
-        # metrics[f"auc/class_6"]=AUROCs[6]
-        # metrics[f"auc/class_7"]=AUROCs[7]
-        # metrics[f"auc/class_8"]=AUROCs[8]
-        # metrics[f"auc/class_9"]=AUROCs[9]
-        # metrics[f"auc/class_10"]=AUROCs[10]
-        # metrics[f"auc/class_11"]=AUROCs[11]
-        # metrics[f"auc/class_12"]=AUROCs[12]
-        # metrics[f"auc/class_13"]=AUROCs[13]
-        # metrics[f"auc/class_14"] = AUROCs[14]
-        # metrics[f"auc/class_15"] = AUROCs[15]
-        # metrics[f"auc/class_16"] = AUROCs[16]
-        # metrics[f"auc/class_17"] = AUROCs[17]
-        metrics[f"auc/class_18"] = AUROCs[18]
-        metrics[f"auc/class_19"] = AUROCs[19]
-        # metrics[f"auc/class_20"] = AUROCs[20]
-        # metrics[f"auc/class_21"] = AUROCs[21]
-        # metrics[f"auc/class_22"] = AUROCs[22]
-        # metrics[f"auc/class_23"] = AUROCs[23]
-        # metrics[f"auc/class_24"] = AUROCs[24]
-        # metrics[f"auc/class_25"] = AUROCs[25]
-        # metrics[f"auc/class_26"] = AUROCs[26]
-        # metrics[f"auc/class_27"] = AUROCs[27]
-        # metrics[f"auc/class_28"] = AUROCs[28]
-        metrics[f"auc/class_29"] = AUROCs[29]
-        # metrics[f"auc/class_30"] = AUROCs[20]
-        # metrics[f"auc/class_31"] = AUROCs[31]
-        # metrics[f"auc/class_32"] = AUROCs[32]
-        # metrics[f"auc/class_33"] = AUROCs[33]
-        # metrics[f"auc/class_34"] = AUROCs[34]
-        # metrics[f"auc/class_35"] = AUROCs[35]
-        # metrics[f"auc/class_36"] = AUROCs[36]
-        # metrics[f"auc/class_37"] = AUROCs[37]
-        # metrics[f"auc/class_38"] = AUROCs[38]
-        # metrics[f"auc/class_39"] = AUROCs[39]
-        # metrics[f"auc/class_40"] = AUROCs[40]
-        # metrics[f"auc/class_41"] = AUROCs[41]
-        # metrics[f"auc/class_42"] = AUROCs[42]
-        metrics[f"auc/class_43"] = AUROCs[43]
-    elif n_class == 71:
-        metrics[f"auc/class_0"]=AUROCs[0]
-        metrics[f"auc/class_1"]=AUROCs[1]
-        metrics[f"auc/class_2"]=AUROCs[2]
-        metrics[f"auc/class_3"]=AUROCs[3]
-        metrics[f"auc/class_4"]=AUROCs[4]
-        metrics[f"auc/class_5"]=AUROCs[5]
-        metrics[f"auc/class_6"]=AUROCs[6]
-        metrics[f"auc/class_7"]=AUROCs[7]
-        metrics[f"auc/class_8"]=AUROCs[8]
-        metrics[f"auc/class_9"]=AUROCs[9]
-        metrics[f"auc/class_10"]=AUROCs[10]
-        metrics[f"auc/class_11"]=AUROCs[11]
-        metrics[f"auc/class_12"]=AUROCs[12]
-        metrics[f"auc/class_13"]=AUROCs[13]
-        metrics[f"auc/class_14"] = AUROCs[14]
-        metrics[f"auc/class_15"] = AUROCs[15]
-        metrics[f"auc/class_16"] = AUROCs[16]
-        metrics[f"auc/class_17"] = AUROCs[17]
-        metrics[f"auc/class_18"] = AUROCs[18]
-        metrics[f"auc/class_19"] = AUROCs[19]
-        metrics[f"auc/class_20"] = AUROCs[20]
-        metrics[f"auc/class_21"] = AUROCs[21]
-        metrics[f"auc/class_22"] = AUROCs[22]
-        metrics[f"auc/class_23"] = AUROCs[23]
-        metrics[f"auc/class_24"] = AUROCs[24]
-        metrics[f"auc/class_25"] = AUROCs[25]
-        metrics[f"auc/class_26"] = AUROCs[26]
-        metrics[f"auc/class_27"] = AUROCs[27]
-        metrics[f"auc/class_28"] = AUROCs[28]
-        metrics[f"auc/class_29"] = AUROCs[29]
-        metrics[f"auc/class_30"] = AUROCs[20]
-        metrics[f"auc/class_31"] = AUROCs[31]
-        metrics[f"auc/class_32"] = AUROCs[32]
-        metrics[f"auc/class_33"] = AUROCs[33]
-        metrics[f"auc/class_34"] = AUROCs[34]
-        metrics[f"auc/class_35"] = AUROCs[35]
-        metrics[f"auc/class_36"] = AUROCs[36]
-        metrics[f"auc/class_37"] = AUROCs[37]
-        metrics[f"auc/class_38"] = AUROCs[38]
-        metrics[f"auc/class_39"] = AUROCs[39]
-        metrics[f"auc/class_40"] = AUROCs[40]
-        metrics[f"auc/class_41"] = AUROCs[41]
-        metrics[f"auc/class_42"] = AUROCs[42]
-        metrics[f"auc/class_43"] = AUROCs[43]
-        metrics[f"auc/class_44"] = AUROCs[44]
-        metrics[f"auc/class_45"] = AUROCs[45]
-        metrics[f"auc/class_46"] = AUROCs[46]
-        metrics[f"auc/class_47"] = AUROCs[47]
-        metrics[f"auc/class_48"] = AUROCs[48]
-        metrics[f"auc/class_49"] = AUROCs[49]
-        metrics[f"auc/class_50"] = AUROCs[50]
-        metrics[f"auc/class_51"] = AUROCs[51]
-        metrics[f"auc/class_52"] = AUROCs[52]
-        metrics[f"auc/class_53"] = AUROCs[53]
-        metrics[f"auc/class_54"] = AUROCs[54]
-        metrics[f"auc/class_55"] = AUROCs[55]
-        metrics[f"auc/class_56"] = AUROCs[56]
-        metrics[f"auc/class_57"] = AUROCs[57]
-        metrics[f"auc/class_58"] = AUROCs[58]
-        metrics[f"auc/class_59"] = AUROCs[59]
-        metrics[f"auc/class_60"] = AUROCs[60]
-        metrics[f"auc/class_61"] = AUROCs[61]
-        metrics[f"auc/class_62"] = AUROCs[62]
-        metrics[f"auc/class_63"] = AUROCs[63]
-        metrics[f"auc/class_64"] = AUROCs[64]
-        metrics[f"auc/class_65"] = AUROCs[65]
-        metrics[f"auc/class_66"] = AUROCs[66]
-        metrics[f"auc/class_67"] = AUROCs[67]
-        metrics[f"auc/class_68"] = AUROCs[68]
-        metrics[f"auc/class_69"] = AUROCs[69]
-        metrics[f"auc/class_70"] = AUROCs[70]
+    for i in range(n_class):
+        metrics[f"auc/class_" + str(i)] = AUROCs[i]
     return metrics
 
 
