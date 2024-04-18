@@ -12,6 +12,12 @@ import math
 
 from fastai.layers import *
 from fastai.core import *
+
+"""
+Implementation based on pytorch and fastai library. It was implemented based on 
+this research: https://github.com/helme/ecg_ptbxl_benchmarking/blob/master/code/models/xresnet1d.py
+"""
+
 def delegates(to=None, keep=False):
     "Decorator: replace `**kwargs` in signature with params from `to`"
     def _f(f):
@@ -228,8 +234,8 @@ def _xresnet1d(expansion, layers, **kwargs):    # 4, [3, 4, 23, 3]
 def xresnet1d101(**kwargs): return _xresnet1d(4, [3, 4, 23, 3], **kwargs)
 
 if __name__ == '__main__':
-    checkpoint = torch.load('/home/user/tyy/project/ked/trained_model/checkpoints_ptbbenchmark_mimiciv/best_valid_epoch_18.pt', map_location='cpu')
-    ecg_model_state_dict = checkpoint['ecg_model']
+    # checkpoint = torch.load('/home/user/tyy/project/ked/trained_model/checkpoints_ptbbenchmark_mimiciv/best_valid_epoch_18.pt', map_location='cpu')
+    # ecg_model_state_dict = checkpoint['ecg_model']
     model = xresnet1d101(num_classes=5, input_channels=12, kernel_size=5,
                           ps_head=0.5, lin_ftrs_head=[768],
                          use_ecgNet_Diagnosis='other'
