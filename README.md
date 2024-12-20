@@ -1,6 +1,6 @@
 # ECGFM-KED
 
-This repository is accompanying our article **Foundation Model of ECG Diagnosis: Signal-Language Pre-training Enhanced by Domain-Specific Knowledge**
+This repository is accompanying our article **Foundation model of ECG diagnosis: Diagnostics and explanations of any form and rhythm on ECG**. The paper has been accepted by Cell Reports Medicine (https://doi.org/10.1016/j.xcrm.2024.101875).
 
 To install Python dependencies:
 
