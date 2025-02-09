@@ -15,7 +15,6 @@ from tensorboardX import SummaryWriter
 
 from factory import utils
 from dataset.ecgDataset import FinetuneDataset
-from models.old_model.model_new import ResNet1D
 from models.ECGNet import ECGNet
 from models.clip_model import CLP_clinical, TQNModel
 from models.resnet1d_wang import resnet1d_wang
@@ -98,11 +97,7 @@ def main(args, config):
     train_dataloader.num_batches = len(train_dataloader)
     val_dataloader.num_samples = len(val_dataset)
     val_dataloader.num_batches = len(val_dataloader)
-    if config["ecg_model_name"] == 'resnet':
-        # image_encoder = ModelRes(res_base_model='resnet50').to(device)
-        ecg_model = ResNet1D(in_channels=1, base_filters=768, kernel_size=1, stride=2, groups=config["finetune_batch_size"],
-                             n_block=config["ecg_model_layers"], n_classes=config['test_georgia_class_nums']).to(device=device)
-    elif config["ecg_model_name"] == 'ecgNet':
+    if config["ecg_model_name"] == 'ecgNet':
         ecg_model = ECGNet(input_channel=1, use_ecgNet_Diagnosis=config["use_ecgNet_Diagnosis"]).to(device=device)
     elif config["ecg_model_name"] == 'resnet1d_wang':
         ecg_model = resnet1d_wang(num_classes=config['test_georgia_class_nums'], input_channels=12, kernel_size=5,

@@ -193,13 +193,6 @@ def add_one_hot_label():
 
 import json
 if __name__ == '__main__':
+    data_load()
     # add_one_hot_label()
-    f = open('/home/tyy/unECG/dataset/georgia/mlb.pkl', 'rb')
-    data = pickle.load(f)
-    print(data.classes_)
-    # label_map = {}
-    # for key, value in zip(label_abbr_list, LABEL_LIST):
-    #     label_map[key] = value
-    # with open("label_map.json", "w") as f:
-    #     json.dump(label_map, f)
-    # data_load()
+

@@ -35,7 +35,6 @@ from engine.train_fg import train,valid_on_ptb
 from models.clip_model import CLP_clinical, ModelDense,TQNModel
 from dataset.ecgDataset import NewECGDataset, TotalLabelDataset, MimicivDataset
 # from dataset_new import NewECGDataset
-from models.old_model.model_new import ResNet1D
 from models.ECGNet import ECGNet
 from models.resnet1d_wang import resnet1d_wang
 from models.xresnet1d_101 import xresnet1d101
@@ -130,10 +129,7 @@ def main(args, config):
     test_dataloader.num_batches = len(test_dataloader)
 
 
-    if config["ecg_model_name"] == 'resnet':
-        ecg_model = ResNet1D(in_channels=1, base_filters=768, kernel_size=1, stride=2, groups = config["batch_size"],
-                             n_block = config["ecg_model_layers"], n_classes=config['class_num']).to(device=device)
-    elif config["ecg_model_name"] == 'densenet':
+    if config["ecg_model_name"] == 'densenet':
         ecg_model = ModelDense(dense_base_model='densenet121').to(device=device)
     elif config["ecg_model_name"] == 'ecgNet':
         ecg_model = ECGNet(input_channel=1, num_classes=config["class_num"],use_ecgNet_Diagnosis=config["use_ecgNet_Diagnosis"]).to(device=device)

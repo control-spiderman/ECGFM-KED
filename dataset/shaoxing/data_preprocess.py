@@ -10,6 +10,11 @@ import numpy as np
 from scipy.signal import resample
 
 def handler_data():
+    """
+        before running this data preparing code,
+        please first download the raw data from https://doi.org/10.6084/m9.figshare.c.4560497.v2,
+        and put it in data_path
+        """
     mlb = MultiLabelBinarizer()
     """"""
     row_data_file = pd.read_excel('Diagnostics.xlsx')

@@ -23,7 +23,7 @@ pip install -r requirements.txt
 2. Modify and run the python file: ./dataset/georgia/data_preprocess.py
 
 ### shaoxing(Chapman)
-1. Download raw data from https://physionet.org/content/ecg-arrhythmia/1.0.0/ and store it in./dataset/shaoxing/
+1. Download raw data from https://doi.org/10.6084/m9.figshare.c.4560497.v2 and store it in./dataset/shaoxing/
 2. Modify and run the python file: ./dataset/shaoxing/data_preprocess.py
 
 ### cpsc2018

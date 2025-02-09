@@ -14,7 +14,7 @@ data_path = "."
 def preprocess_physionet(data_path):
     """
     before running this data preparing code,
-    please first download the raw data from https://physionet.org/content/challenge-2017/1.0.0/,
+    please first download the raw data from https://physionet.org/content/challenge-2020/1.0.2/training/cpsc_2018/#files-panel,
     and put it in data_path
     """
 

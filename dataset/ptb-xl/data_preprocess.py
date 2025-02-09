@@ -1,4 +1,21 @@
+import pandas as pd
+import numpy as np
+import multiprocessing
+from itertools import repeat
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, MultiLabelBinarizer
+import ast
+import pickle
+import csv
+import json
+import requests
+import os
+import wfdb
+from tqdm import tqdm
 
+"""
+This data processing document has been modified from this project: https://github.com/helme/ecg_ptbxl_benchmarking
+"""
 
 def handler_data(experiment_name, task, datafolder, sampling_frequency = 100, min_samples = 0, train_fold = 8, val_fold = 9, test_fold = 10, folds_type = 'strat'):
     data, raw_labels = load_dataset(datafolder, sampling_frequency)
@@ -53,7 +70,22 @@ def handler_data(experiment_name, task, datafolder, sampling_frequency = 100, mi
     y_val.dump('./' + experiment_name + '/data/y_val.npy')
     y_test.dump('./' + experiment_name + '/data/y_test.npy')
 
-
+def load_raw_data_ptbxl(df, sampling_rate, path):
+    if sampling_rate == 100:
+        if os.path.exists(path + 'raw100.npy'):
+            data = np.load(path+'raw100.npy', allow_pickle=True)
+        else:
+            data = [wfdb.rdsamp(path+f) for f in tqdm(df.filename_lr)]
+            data = np.array([signal for signal, meta in data])      # (21799, 1000, 12)
+            pickle.dump(data, open(path+'raw100.npy', 'wb'), protocol=4)
+    elif sampling_rate == 500:
+        if os.path.exists(path + 'raw500.npy'):
+            data = np.load(path+'raw500.npy', allow_pickle=True)
+        else:
+            data = [wfdb.rdsamp(path+f) for f in tqdm(df.filename_hr)]
+            data = np.array([signal for signal, meta in data])
+            pickle.dump(data, open(path+'raw500.npy', 'wb'), protocol=4)
+    return data
 def load_dataset(path, sampling_rate, release=False):
     if path.split('/')[-2] == 'ptbxl':
         # load and convert annotation data
@@ -63,13 +95,13 @@ def load_dataset(path, sampling_rate, release=False):
         # Load raw signal data
         X = load_raw_data_ptbxl(Y, sampling_rate, path)
 
-    elif path.split('/')[-2] == 'ICBEB':
-        # load and convert annotation data
-        Y = pd.read_csv(path+'icbeb_database.csv', index_col='ecg_id')
-        Y.scp_codes = Y.scp_codes.apply(lambda x: ast.literal_eval(x))
-
-        # Load raw signal data
-        X = load_raw_data_icbeb(Y, sampling_rate, path)
+    # elif path.split('/')[-2] == 'ICBEB':
+    #     # load and convert annotation data
+    #     Y = pd.read_csv(path+'icbeb_database.csv', index_col='ecg_id')
+    #     Y.scp_codes = Y.scp_codes.apply(lambda x: ast.literal_eval(x))
+    #
+    #     # Load raw signal data
+    #     X = load_raw_data_icbeb(Y, sampling_rate, path)
 
     return X, Y
 
@@ -86,7 +118,7 @@ def select_data(XX,YY, ctype, min_samples, outputfolder):
         # res_X = XX[YY.diagnostic_len == 0]
         # res_Y = YY[YY.diagnostic_len == 0]
         # res_YY = res_Y[YY.strat_fold <= 8]
-        # res_YY.to_csv("/home/tyy/ecg_ptbxl/output/exp1/data/res_labels.csv", index=True)
+        # res_YY.to_csv("/home/user/tyy/project/ked/dataset/ptb-xl/output/exp1/data/res_labels.csv", index=True)
     elif ctype == 'subdiagnostic':
         counts = pd.Series(np.concatenate(YY.subdiagnostic.values)).value_counts()
         counts = counts[counts > min_samples]
@@ -222,7 +254,13 @@ def compute_label_aggregations(df, folder, ctype):
 
     return df
 
-
+def apply_standardizer(X, ss):
+    X_tmp = []
+    for x in X:
+        x_shape = x.shape
+        X_tmp.append(ss.transform(x.flatten()[:,np.newaxis]).reshape(x_shape))
+    X_tmp = np.array(X_tmp)
+    return X_tmp
 def preprocess_signals(X_train, X_validation, X_test, outputfolder):
     # Standardize data such that mean 0 and variance 1
     ss = StandardScaler()
@@ -236,8 +274,9 @@ def preprocess_signals(X_train, X_validation, X_test, outputfolder):
 
 def translate_report(report,csv_file_path):
     header = ['index', 'source', 'target']  # Headers of csv file
-    prompt_prefix_diagnosis = "Help me translate the medical report from German into English. Please directly tell me the translation result, no other explanatory words. The origin medical report is: "
-    url = "http://43.153.113.218:5000/chatWithXingou"
+    prompt_prefix_diagnosis = ("Help me translate the medical report from German into English. Please directly tell me the "
+                               "translation result, no other explanatory words. The origin medical report is: ")
+    url = "CHAT_WITH_YOUR_GPT"
     headers = {"Content-Type": "application/json;charset=utf-8",
                "Accept": "*/*",
                "Accept-Encoding": "gzip, deflate, br",
@@ -269,16 +308,214 @@ def translate_report(report,csv_file_path):
                 print(e)
         print(error_list)
 
+
+def generate_ptb_label_gemini_augment():
+    all_label_map = {'NDT': 'non-diagnostic T wave abnormalities',
+                     'NST_': 'ST segment changes',
+                     'DIG': 'digitalis-effect',
+                     'LNGQT': 'long QT interval',
+                     'NORM': 'normal ECG',
+                     'IMI': 'inferior myocardial infarction',
+                     'ASMI': 'anteroseptal myocardial infarction',
+                     'LVH': 'left ventricular hypertrophy',
+                     'LAFB': 'left anterior fascicular block',
+                     'ISC_': 'myocardial ischemic',
+                     'IRBBB': 'incomplete right bundle branch block',
+                     '1AVB': 'first degree atrioventricular block',
+                     'IVCD': 'intraventricular conduction disturbance (block)',
+                     'ISCAL': 'anterolateral myocardial ischemic',
+                     'CRBBB': 'complete right bundle branch block',
+                     'CLBBB': 'complete left bundle branch block',
+                     'ILMI': 'inferolateral myocardial infarction',
+                     'LAO/LAE': 'left atrial overload/enlargement',
+                     'AMI': 'anterior myocardial infarction',
+                     'ALMI': 'anterolateral myocardial infarction',
+                     'ISCIN': 'inferior myocardial ischemic',
+                     'INJAS': 'subendocardial injury in anteroseptal leads',
+                     'LMI': 'lateral myocardial infarction',
+                     'ISCIL': 'inferolateral myocardial ischemic',
+                     'LPFB': 'left posterior fascicular block',
+                     'ISCAS': 'anteroseptal myocardial ischemic',
+                     'INJAL': 'subendocardial injury in anterolateral leads',
+                     'ISCLA': 'lateral myocardial ischemic',
+                     'RVH': 'right ventricular hypertrophy',
+                     'ANEUR': 'ST-T changes compatible with ventricular aneurysm',
+                     'RAO/RAE': 'right atrial overload/enlargement',
+                     'EL': 'electrolytic disturbance or drug (former EDIS)',
+                     'WPW': 'Wolf-Parkinson-White syndrome',
+                     'ILBBB': 'incomplete left bundle branch block',
+                     'IPLMI': 'inferoposterolateral myocardial infarction',
+                     'ISCAN': 'anterior myocardial ischemic',
+                     'IPMI': 'inferoposterior myocardial infarction',
+                     'SEHYP': 'septal hypertrophy',
+                     'INJIN': 'subendocardial injury in inferior leads',
+                     'INJLA': 'subendocardial injury in lateral leads',
+                     'PMI': 'posterior myocardial infarction',
+                     '3AVB': 'third degree atrioventricular block',
+                     'INJIL': 'subendocardial injury in inferolateral leads',
+                     '2AVB': 'second degree atrioventricular block',
+                     'ABQRS': 'abnormal QRS(QRS changes)',
+                     'PVC': 'ventricular premature complex',
+                     'STD_': 'ST segment depression',
+                     'VCLVH': 'voltage criteria (QRS) for left ventricular hypertrophy',
+                     'QWAVE': 'Q waves present',
+                     'LOWT': 'low amplitude T wave',
+                     'NT_': 'T wave changes',
+                     'PAC': 'atrial premature complex',
+                     'LPR': 'prolonged PR interval',
+                     'INVT': 'inverted T wave',
+                     'LVOLT': 'low QRS voltages in the frontal and horizontal leads',
+                     'HVOLT': 'high QRS voltage',
+                     'TAB_': 'T wave abnormality',
+                     'STE_': 'ST segment elevation',
+                     'PRC(S)': 'premature complex(es)',
+                     'SR': 'sinus rhythm',
+                     'AFIB': 'atrial fibrillation',
+                     'STACH': 'sinus tachycardia',
+                     'SARRH': 'sinus arrhythmia',
+                     'SBRAD': 'sinus bradycardia',
+                     'PACE': 'normal functioning artificial pacemaker',
+                     'SVARR': 'supraventricular arrhythmia',
+                     'BIGU': 'bigeminal pattern (unknown origin, SV or Ventricular)',
+                     'AFLT': 'atrial flutter',
+                     'SVTAC': 'supraventricular tachycardia',
+                     'PSVT': 'paroxysmal supraventricular tachycardia',
+                     'TRIGU': 'trigeminal pattern (unknown origin, SV or Ventricular)'}
+    generated_description_dict = {}
+    for item in all_label_map.values():
+        response = _generate_gemini_augment_(item)
+        print(response)
+        generated_description_dict[item] = response
+    with open("ptbxl_label_map_description_gemini.json", "w") as f:
+        json.dump(generated_description_dict, f)
+
+def _generate_gemini_augment_(item):
+    prompt_prefix_zeroshot = "I want you to play the role of a professional Electrocardiologist, and I need you to explain the meaning of "
+    prompt_suffix_zeroshot = " in a 12-lead electrocardiogram report. Your answer must be less than 50 words."
+    prompt_prefix_diagnosis = "I want you to play the role of a professional Electrocardiologist, and I need you to teach me how " \
+                              "to diagnose "
+    prompt_suffix_diagnosis = " from 12-lead ECG. such as what leads or what features to focus on ,etc. Your answer must be less " \
+                                  "than 50 words."
+    url = "CAHT_WITH_YOUR_GPT"
+    headers = {"Content-Type": "application/json;charset=utf-8",
+               "Accept": "*/*",
+               "Accept-Encoding": "gzip, deflate, br",
+               "Connection": "keep-alive"}
+    # data = {"messages": prompt_prefix_diagnosis + item + prompt_suffix_diagnosis,
+    #         "userId": "serveForPaper"}
+    data = {"messages": prompt_prefix_zeroshot + item + prompt_suffix_zeroshot,
+            "userId": "serveForPaper"}
+    json_data = json.dumps(data)
+    response = requests.post(url=url, data=json_data, headers=headers)
+    return response.text
+
+
+def generate_zhipuai_augment():
+    """"""
+    from zhipuai import ZhipuAI
+
+    prompt_prefix_zeroshot = "I want you to play the role of a professional Electrocardiologist, and I need you to explain the meaning of "
+    prompt_suffix_zeroshot = " in a 12-lead electrocardiogram report. Your answer must be less than 50 words."
+    prompt_prefix_diagnosis = "I want you to play the role of a professional Electrocardiologist, and I need you to teach me how " \
+                                  "to diagnose "
+    prompt_suffix_diagnosis = " from 12-lead ECG. such as what leads or what features to focus on ,etc. Your answer must be less " \
+                                  "than 50 words."
+
+    client = ZhipuAI(api_key="YOUR_ZHIPU_API_KEY")
+
+    all_label_map = {'NDT': 'non-diagnostic T wave abnormalities',
+                     'NST_': 'ST segment changes',
+                     'DIG': 'digitalis-effect',
+                     'LNGQT': 'long QT interval',
+                     'NORM': 'normal ECG',
+                     'IMI': 'inferior myocardial infarction',
+                     'ASMI': 'anteroseptal myocardial infarction',
+                     'LVH': 'left ventricular hypertrophy',
+                     'LAFB': 'left anterior fascicular block',
+                     'ISC_': 'myocardial ischemic',
+                     'IRBBB': 'incomplete right bundle branch block',
+                     '1AVB': 'first degree atrioventricular block',
+                     'IVCD': 'intraventricular conduction disturbance (block)',
+                     'ISCAL': 'anterolateral myocardial ischemic',
+                     'CRBBB': 'complete right bundle branch block',
+                     'CLBBB': 'complete left bundle branch block',
+                     'ILMI': 'inferolateral myocardial infarction',
+                     'LAO/LAE': 'left atrial overload/enlargement',
+                     'AMI': 'anterior myocardial infarction',
+                     'ALMI': 'anterolateral myocardial infarction',
+                     'ISCIN': 'inferior myocardial ischemic',
+                     'INJAS': 'subendocardial injury in anteroseptal leads',
+                     'LMI': 'lateral myocardial infarction',
+                     'ISCIL': 'inferolateral myocardial ischemic',
+                     'LPFB': 'left posterior fascicular block',
+                     'ISCAS': 'anteroseptal myocardial ischemic',
+                     'INJAL': 'subendocardial injury in anterolateral leads',
+                     'ISCLA': 'lateral myocardial ischemic',
+                     'RVH': 'right ventricular hypertrophy',
+                     'ANEUR': 'ST-T changes compatible with ventricular aneurysm',
+                     'RAO/RAE': 'right atrial overload/enlargement',
+                     'EL': 'electrolytic disturbance or drug (former EDIS)',
+                     'WPW': 'Wolf-Parkinson-White syndrome',
+                     'ILBBB': 'incomplete left bundle branch block',
+                     'IPLMI': 'inferoposterolateral myocardial infarction',
+                     'ISCAN': 'anterior myocardial ischemic',
+                     'IPMI': 'inferoposterior myocardial infarction',
+                     'SEHYP': 'septal hypertrophy',
+                     'INJIN': 'subendocardial injury in inferior leads',
+                     'INJLA': 'subendocardial injury in lateral leads',
+                     'PMI': 'posterior myocardial infarction',
+                     '3AVB': 'third degree atrioventricular block',
+                     'INJIL': 'subendocardial injury in inferolateral leads',
+                     '2AVB': 'second degree atrioventricular block',
+                     'ABQRS': 'abnormal QRS(QRS changes)',
+                     'PVC': 'ventricular premature complex',
+                     'STD_': 'ST segment depression',
+                     'VCLVH': 'voltage criteria (QRS) for left ventricular hypertrophy',
+                     'QWAVE': 'Q waves present',
+                     'LOWT': 'low amplitude T wave',
+                     'NT_': 'T wave changes',
+                     'PAC': 'atrial premature complex',
+                     'LPR': 'prolonged PR interval',
+                     'INVT': 'inverted T wave',
+                     'LVOLT': 'low QRS voltages in the frontal and horizontal leads',
+                     'HVOLT': 'high QRS voltage',
+                     'TAB_': 'T wave abnormality',
+                     'STE_': 'ST segment elevation',
+                     'PRC(S)': 'premature complex(es)',
+                     'SR': 'sinus rhythm',
+                     'AFIB': 'atrial fibrillation',
+                     'STACH': 'sinus tachycardia',
+                     'SARRH': 'sinus arrhythmia',
+                     'SBRAD': 'sinus bradycardia',
+                     'PACE': 'normal functioning artificial pacemaker',
+                     'SVARR': 'supraventricular arrhythmia',
+                     'BIGU': 'bigeminal pattern (unknown origin, SV or Ventricular)',
+                     'AFLT': 'atrial flutter',
+                     'SVTAC': 'supraventricular tachycardia',
+                     'PSVT': 'paroxysmal supraventricular tachycardia',
+                     'TRIGU': 'trigeminal pattern (unknown origin, SV or Ventricular)'}
+    generated_description_dict = {}
+
+    for item in all_label_map.values():
+        if item in generated_description_dict.keys():
+            continue
+        response = client.chat.completions.create(
+            model="glm-4",  # 填写需要调用的模型名称
+            messages=[
+                {"role": "user", "content": prompt_prefix_diagnosis + item + prompt_suffix_diagnosis},
+                # {"role": "user", "content": prompt_prefix_zeroshot + item + prompt_suffix_zeroshot},
+            ],
+        )
+        response = response.choices[0].message.content
+        print(response)
+        generated_description_dict[item] = response
+
+    with open("ptbxl_label_map_report_zhipuai.json", "w") as f:
+        json.dump(generated_description_dict, f)
+
+
+
 if __name__ == '__main__':
-    # PTB - xl raw data storage paths:
-    datafolder = '.'
-    experiments = [
-        ('exp0', 'all'),  # (21799, 71)
-        # ('exp1', 'diagnostic'), # (21388, 44)
-        # ('exp1.1', 'subdiagnostic'),     # (21388, 23)
-        # ('exp1.1.1', 'superdiagnostic'),
-        # ('exp2', 'form'),   # (8978, 19)
-        # ('exp3', 'rhythm')  # (21030, 12)
-    ]
-    for name, task in experiments:
-        handler_data(name, task, datafolder)
+    generate_ptb_label_gemini_augment()
+
+    # generate_zhipuai_augment()
