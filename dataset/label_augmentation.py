@@ -93,7 +93,7 @@ def _handler_generate_augment(scp_statement, use_what_label):
                     "to identify abnormal electrocardiograms. How to identify"
     prompt_suffix = "from 12-lead ECG, such as what leads or what features to focus on ,etc. Your answer must be less " \
                     "than 100 words."
-    url = "http://43.153.113.218:5000/chatWithXingou"
+    url = "CHAT_WITH_YOUR_GPT"
     headers = {"Content-Type": "application/json;charset=utf-8",
                "Accept": "*/*",
                "Accept-Encoding": "gzip, deflate, br",
@@ -147,7 +147,7 @@ def _handler_generate_augment(scp_statement, use_what_label):
 #
 #     prompt_suffix_diagnosis = ". Your answer must be less " \
 #                               "than 20 words."
-#     url = "http://43.153.113.218:5000/chatWithXingou"
+#     url = "CHAT_WITH_YOUR_GPT"
 #     headers = {"Content-Type": "application/json;charset=utf-8",
 #                "Accept": "*/*",
 #                "Accept-Encoding": "gzip, deflate, br",
@@ -171,7 +171,7 @@ def _handler_generate_augment_(item, prompt_prefix=None, prompt_suffix=None):
     else:
         prompt_suffix_diagnosis = " from 12-lead ECG. such as what leads or what features to focus on ,etc. Your answer must be less " \
                               "than 50 words."
-    url = "http://43.153.113.218:5000/chatWithXingou"
+    url = "CHAT_WITH_YOUR_GPT"
     headers = {"Content-Type": "application/json;charset=utf-8",
                "Accept": "*/*",
                "Accept-Encoding": "gzip, deflate, br",
