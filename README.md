@@ -1,6 +1,12 @@
 # ECGFM-KED
 
-This repository is accompanying our article **Foundation model of ECG diagnosis: Diagnostics and explanations of any form and rhythm on ECG**. The paper has been accepted by Cell Reports Medicine (https://doi.org/10.1016/j.xcrm.2024.101875).
+**2025-02-24** We have updated the model weight file best_valid_all_increase_with_augment_epoch_3.pt (trained on mimic-iv-ecg) and the MIMIC-IV-ECG labels mimiciv_ecg_label_annotated_11_9.json, which were annotated and cleaned by our team, on Zenodo (https://zenodo.org/records/14881564).
+
+This repository is accompanying our article **Foundation model of ECG diagnosis: Diagnostics and explanations of any form and rhythm on ECG**. The paper has been accepted by Cell Reports Medicine (https://doi.org/10.1016/j.xcrm.2024.101875)
+        
+        
+        
+        .
 
 To install Python dependencies:
 
@@ -23,7 +29,11 @@ pip install -r requirements.txt
 2. Modify and run the python file: ./dataset/georgia/data_preprocess.py
 
 ### shaoxing(Chapman)
-1. Download raw data from https://doi.org/10.6084/m9.figshare.c.4560497.v2 and store it in./dataset/shaoxing/
+1. Download raw data from https://doi.org/10.6084/m9.figshare.c.4560497.v2
+        
+        
+        
+         and store it in./dataset/shaoxing/
 2. Modify and run the python file: ./dataset/shaoxing/data_preprocess.py
 
 ### cpsc2018
