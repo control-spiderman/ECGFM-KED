@@ -1,0 +1,346 @@
+,total_label
+0,low terminal QRS spatial velocity
+1,ST-T changes
+2,atrioventricular dissociation
+3,tall P waves in inferior leads
+4,inferior ST-T changes
+5,atrial fibrillation
+6,inferior and lateral ST segment elevation
+7,right axis deviation
+8,borderline anteroseptal T wave changes
+9,acute anterolateral myocardial infarction
+10,left atrial enlargement
+11,multiple premature ventricular complexes
+12,inferior and anterior/septal ST-T changes
+13,frequent atrial premature complex
+14,old posterior myocardial infarction
+15,atrial premature complex
+16,low voltage
+17,abnormal extreme QRS axis deviation
+18,rightward axis
+19,frequent ventricular premature complex
+20,inferior and anterior/septal ST segment elevation
+21,intermittent conduction defect
+22,right ventricular conduction delay
+23,inferior and septal ST-T changes
+24,acute ST segment elevation myocardial infarction
+25,3:1 atrioventricular block
+26,non-specific T wave abnormalities in diffuse lead
+27,anteroseptal myocardial infarction
+28,anterior/septal and lateral T wave changes
+29,"low R waves in V2,V3,V4 leads"
+30,recent anteroseptal myocardial infarction
+31,predominant 4:1 atrioventricular block
+32,broad R or R' in V1 or V2 leads
+33,inferior and anterior/septal T wave changes
+34,ectopic atrial rhythm
+35,normal ECG except for rate
+36,irregular sinus bradycardia
+37,QRS changes in V3/V4 leads
+38,ST segment depression
+39,slow sinus arrhythmia
+40,idioventricular rhythm
+41,irregular rate
+42,predominant 3:1 atrioventricular block
+43,anterior ST-T changes
+44,borderline first degree atrioventricular block
+45,inferior T wave changes
+46,ventricular bigeminy
+47,non-specific lateral T wave changes
+48,borderline lateral ST segment elevation
+49,irregular ectopic atrial rhythm
+50,ST segment junctional depression
+51,anterior myocardial ischemic
+52,frequent multifocal ventricular premature complex
+53, Q wave in inferior leads
+54,marked left axis deviation
+55,extensive Q waves
+56,recent inferior myocardial infarction
+57,sinus/atrial tachycardia
+58,abnormal ECG
+59,inferior and anterior T wave changes
+60,multifocal interpolated ventricular premature complex
+61,prolonged QRS duration
+62,acute anteroseptal myocardial infarction
+63,non-specific septal ST segment changes
+64,borderline anterior T wave changes 
+65,unsustained ventricular tachycardia
+66,atypical left bundle branch block
+67,"broad R wave in I, V5 or V6 leads"
+68,hypertrophy
+69,borderline inferior and anterior T wave changes
+70,low voltage in the extremity and precordial leads
+71,non-specific septal ST-T changes
+72,interpolated ventricular premature complex
+73,supraventricular bigeminy
+74,anteroseptal ST segment changes
+75,anteroseptal T wave changes
+76,ventricular couplets
+77,delete
+78,hyperkalemia
+79,low QRS voltages in precordial leads
+80,ventricular trigeminy
+81,inferior ST segment elevation
+82,borderline anterolateral ST segment depression
+83,4:1 atrioventricular block
+84,anterolateral ST segment elevation
+85,non-specific inferior T wave changes
+86,septal ST segment changes
+87,non-specific intraventricular conduction delay
+88,non-specific anterolateral ST-T changes
+89,bigeminal ventricular premature complex
+90,atrioventricular sequential pacing pattern
+91,anterolateral T wave changes
+92,"reversed R wave progression in V2,V3,V4 leads"
+93,premature complexes
+94,acute lateral myocardial infarction
+95,rapid ventricular response
+96,inferior/lateral ST segment changes
+97,dual chamber pacemaker
+98,fusion complexes
+99,inferior myocardial injury
+100,myocardial injury
+101,leftward axis
+102,Wolf-Parkinson-White syndrome
+103,acute myocardial ischemia
+104,low R waves in anterior leads
+105,acute inferolateral myocardial infarction
+106,rSr' pattern in V1 lead
+107,septal ST segment elevation
+108,tachycardia
+109,non-specific lateral ST-T changes
+110,T wave abnormality
+111,third degree atrioventricular block
+112,sinus rhythm
+113,right atrial enlargement
+114,left atrial abnormality
+115,non-specific lateral ST segement changes
+116,multiform ventricular premature complexes
+117,non-specific inferior ST-T changes
+118,myocardial ischemic in anterolateral leads
+119,complete atrioventricular block
+120,non-specific intraventricular conduction disturbance (block)
+121,sinus arrhythmia
+122,atrial tachycardia
+123,borderline lateral ST segment depression
+124,borderline anterolateral ST segment elevation
+125,occasional frequent atrial premature complex
+126,non-specific ST segment junctional depression
+127,"ST segment depression in V1,V2,V3 leads"
+128,QRS changes in V2 leads
+129,predominant 2:1 atrioventricular block
+130,shortened QT interval
+131,regular supraventricular rhythm
+132,secondary ST-T changes
+133,old septal myocardial infarction
+134,left anterior fascicular block
+135,tall R wave in V1/V2 leads
+136,atrial flutter/fibrillation
+137,septal myocardial infarction
+138,poor R wave progression
+139,atrial premature complexes in couplets
+140,non-specific anterior/septal and lateral ST segment changes
+141,junctional rhythm
+142,minimal ST segment depression in diffuse lead
+143,rapid ventricular rate
+144,unclassified ECG
+145,non-specific anterolateral T wave changes
+146,atypical right bundle branch block
+147,deep S wave in anteroseptal lead
+148,high degree atrioventricular block
+149,second degree atrioventricular block
+150,non-specific inferior and septal T wave
+151,non-specific inferior T wave abnormalities
+152,septal Q waves
+153,borderline inferior ST segment elevation
+154,marked sinus bradycardia
+155,short PR interval
+156,voltage criteria for left ventricular hypertrophy
+157,ventricular premature complex
+158,non-specific extensive ST-T changes
+159,non-specific inferior and anterior/septal T wave changes
+160,myocardial injury/ischemia
+161,borderline inferior/lateral ST-T changes
+162,acute anterior myocardial infarction
+163,non-specific anterior/septal and lateral ST-T changes
+164,aberrantly conducted supraventricular premature beats
+165,incomplete right bundle branch block
+166,wide QRS tachycardia
+167,myocardial infarction
+168,borderline anterior ST segment elevation
+169,Q wave abnormality
+170,anterolateral myocardial injury
+171,tall R wave in lateral leads
+172,borderline extensive ST-T changes 
+173,paroxysmal idioventricular rhythm
+174,recent myocardial infarction
+175,lateral ST segment elevation
+176,old inferior myocardial infarction
+177,lateral myocardial infarction
+178,r' > r in V1/V2 leads
+179,accelerated junctional rhythm
+180,marked right axis deviation
+181,right atrial abnormality
+182,anteroseptal ST-T changes
+183,inferior and anterior ST-T changes
+184,borderline lateral ST-T changes
+185,indeterminate axis
+186,right ventricular hypertrophy
+187,sinus tachycardia
+188,non-specific inferior and anterior/septal ST-T changes
+189,anteroseptal ST segment elevation
+190,irregular sinus tachycardia
+191,lateral ST-T changes
+192,septal T wave changes
+193,borderline extensive T wave changes
+194,non-specific inferior and anterior ST-T changes
+195,non-specific extensive ST segment changes
+196,non-specific anterior T wave changes
+197,right bundle branch block
+198,repolarization abnormality
+199,supraventricular tachycardia
+200,delete_all
+201,non-specific extensive T wave changes
+202,non-specific inferior/lateral T wave changes
+203,prolonged QT interval
+204,left ventricular hypertrophy
+205,ectopic atrial tachycardia
+206,borderline ECG
+207,2:1 atrioventricular block
+208,inferior Q waves
+209,extensive myocardial infarction
+210,lateral ST segment changes
+211,"poor R wave progression in V2,V3,V4 leads"
+212,left bundle branch block
+213,borderline anterolateral T wave changes
+214,non-specific inferior and lateral T wave changes
+215,lateral myocardial ischemic
+216,sinus/ectopic atrial tachycardia
+217,septal and lateral ST-T changes
+218,borderline septal ST-T changes
+219,inferior/lateral T wave changes
+220,supraventricular premature beats
+221,extensive ST-T changes
+222,anterior fascicular block
+223,non-specific repolarization abnormality in diffuse leads
+224,high voltage in limb leads
+225,inverted T wave
+226,early repolarization
+227,severe right axis deviation
+228,sinus bradycardia
+229,abnormal P wave terminal force
+230,anterior/septal and lateral ST-T changes
+231,intraventricular conduction defect
+232,anterior myocardial injury
+233,secondary repolarization abnormality
+234,ventricular tachycardia
+235,anterior T wave changes
+236,non-specific anterior ST-T changes
+237,biventricular hypertrophy
+238,prolonged PR interval
+239,ischemic in diffuse leads
+240,non-specific repolarization abnormality in lateral leads
+241,inferior myocardial ischemic
+242,normal ECG
+243,tall T wave
+244,generalized low QRS voltages
+245,second degree (Mobitz II) sinoatrial block
+246,multifocal ventricular premature complex
+247,old anterior myocardial infarction
+248,acute myocardial infarction
+249,inferior/lateral ST-T changes
+250,left posterior fascicular block
+251,non-specific inferior and anterior T wave changes
+252,slow ventricular response
+253,non-specific inferior and anterior ST-T changes 
+254,borderline ST segment depression in diffuse lead
+255,borderline prolonged PR interval
+256,non-specific anteroseptal ST segment changes
+257,extensive ST segment elevation
+258,inferior and lateral T wave changes
+259,atrioventricular junctional (nodal) bradycardia
+260,non-specific anteroseptal T wave changes
+261,first degree atrioventricular block
+262,borderline repolarization abnormality in diffuse leads
+263,inferior myocardial infarction
+264,non-specific ST segment changes
+265,borderline anterolateral ST-T changes
+266,borderline lateral T wave changes
+267,aberrantly conducted supraventricular complexes
+268,anterolateral ST-T changes
+269,rSr' pattern in V1 or V2 leads
+270,septal ST-T changes
+271,pericarditis
+272,anteroseptal ST segment depression
+273,sinus pause
+274,varied atrioventricular block
+275,ventricular hypertrophy
+276,low QRS voltages in limb leads
+277,borderline T wave changes in diffuse lead
+278,borderline inferior T wave changes 
+279,acute pericarditis
+280,extensive intraventricular conduction defect
+281,acute posterior myocardial infarction
+282,bigeminal atrial premature complex
+283,extensive T wave changes
+284,long QTc interval
+285,bradycardia
+286,ectopic atrial bradycardia
+287,borderline high QRS voltage
+288,non-specific septal and lateral ST-T changes
+289,low voltage in the extremity leads
+290,normal variant
+291,myocardial ischemic in diffuse leads
+292,undetermined rhythm
+293,non-specific inferior/lateral ST-T changes
+294,abnormally high lewis index
+295,non-specific inferior and septal ST-T changes
+296,old lateral myocardial infarction
+297,lateral T wave changes
+298,non-specific anterior/septal and lateral T wave changes
+299,nonsustained ventricular tachycardia
+300,non-specific inferior/lateral ST changes
+301,low voltage in the precordial leads
+302,non-specific anteroseptal ST-T changes
+303,QRS changes
+304,incomplete left bundle branch block
+305,low R waves in anteroseptal leads
+306,aberrant ventricular conduction
+307,biatrial enlargement
+308,atrioventricular junctional rhythm
+309,accelerated idioventricular rhythm
+310,non-specific septal T wave changes
+311,anterolateral myocardial ischemic
+312,junctional tachycardia
+313,inferior and septal ST segment elevation
+314,myocardial ischemia
+315,ST segment elevation
+316,anterior ST segment elevation
+317,anterior myocardial infarction
+318,left axis deviation
+319,uncontrolled ventricular response
+320,borderline septal T wave changes 
+321,anterolateral myocardial infarction
+322,acute inferior myocardial infarction
+323,extensive ST elevation
+324,sinus/ectopic atrial rhythm
+325,"marked ST segment depression in V1,V2,V3,V4,V5,V6"
+326,non-specific inferior ST segment changes
+327,lateral myocardial injury
+328,Q waves in anteroseptal leads
+329,QRS axis leftward
+330,dextrocardia
+331,ventricular pre-excitation
+332,non-specific anterolateral ST segment changes
+333,sinus/ectopic atrial bradycardia
+334,paired ventricular premature complexes
+335,marked precordial ST segment depression
+336,anterior Q waves
+337,old anteroseptal myocardial infarction
+338,non-specific anterior ST segment changes
+339,abnormal ventricular conduction pathways
+340,inferior and lateral ST-T changes
+341,atrial flutter
+342,Q waves in inferior and anterior/septal leads
+343,abnormal R wave progression
+344,old anterolateral myocardial infarction
